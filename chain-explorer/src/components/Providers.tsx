@@ -9,10 +9,21 @@ import '@rainbow-me/rainbowkit/styles.css';
 
 import { cookieStorage, createStorage } from 'wagmi';
 
+import { http } from 'wagmi';
+
+const alchemyId = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+
 const config = getDefaultConfig({
     appName: 'Chain Explorer',
     projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo',
     chains: [mainnet, base, arbitrum, optimism, polygon],
+    transports: {
+        [mainnet.id]: http(`https://eth-mainnet.g.alchemy.com/v2/${alchemyId}`),
+        [base.id]: http(`https://base-mainnet.g.alchemy.com/v2/${alchemyId}`),
+        [arbitrum.id]: http(`https://arb-mainnet.g.alchemy.com/v2/${alchemyId}`),
+        [optimism.id]: http(`https://opt-mainnet.g.alchemy.com/v2/${alchemyId}`),
+        [polygon.id]: http(`https://polygon-mainnet.g.alchemy.com/v2/${alchemyId}`),
+    },
     ssr: false,
     storage: createStorage({
         storage: cookieStorage,

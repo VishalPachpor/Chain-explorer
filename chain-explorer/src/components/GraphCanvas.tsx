@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useGraphStore } from '@/stores/graphStore';
 import { GraphNode } from '@/types/graph';
+import { useChainId } from 'wagmi';
 
 // Dynamic import to avoid SSR issues with Three.js
 const ForceGraph3DComponent = dynamic(() => import('./ForceGraph3D'), {
@@ -26,10 +27,11 @@ const ForceGraph2DComponent = dynamic(() => import('./ForceGraph2D'), {
 export function GraphCanvas() {
     const isMobile = useIsMobile();
     const { graph, expandNode, selectNode } = useGraphStore();
+    const chainId = useChainId(); // Get connected wallet's chainId
 
     const handleNodeClick = (node: GraphNode) => {
         selectNode(node);
-        expandNode(node.id);
+        expandNode(node.id, chainId); // Pass chainId to API
     };
 
     if (graph.nodes.length === 0) {

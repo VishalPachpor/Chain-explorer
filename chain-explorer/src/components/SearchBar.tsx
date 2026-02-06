@@ -1,12 +1,14 @@
 'use client';
 import { useState, KeyboardEvent } from 'react';
 import { useGraphStore } from '@/stores/graphStore';
+import { useChainId } from 'wagmi';
 
 export function SearchBar() {
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const { initGraph, expandNode } = useGraphStore();
+    const chainId = useChainId(); // Get connected wallet's chainId
 
     const handleSearch = async () => {
         if (!query.trim()) return;
@@ -22,7 +24,7 @@ export function SearchBar() {
                 setError(data.error);
             } else if (data.address) {
                 initGraph(data.address);
-                await expandNode(data.address);
+                await expandNode(data.address, chainId); // Pass chainId to API
                 setQuery('');
             }
         } catch (err) {

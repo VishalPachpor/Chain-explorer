@@ -8,7 +8,7 @@ interface GraphStore {
     selectedNode: GraphNode | null;
 
     initGraph: (rootAddress: string) => void;
-    expandNode: (address: string) => Promise<void>;
+    expandNode: (address: string, chainId?: number) => Promise<void>;
     selectNode: (node: GraphNode | null) => void;
 }
 
@@ -37,7 +37,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         });
     },
 
-    expandNode: async (address) => {
+    expandNode: async (address, chainId = 1) => {
         const { expandedNodes, pendingNodes, graph } = get();
         const normalizedAddress = address.toLowerCase();
 
@@ -58,7 +58,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         }));
 
         try {
-            const res = await fetch(`/api/expand?address=${normalizedAddress}`);
+            const res = await fetch(`/api/expand?address=${normalizedAddress}&chainId=${chainId}`);
             const newData = await res.json();
 
             if (!res.ok || !newData.nodes || !newData.links) {

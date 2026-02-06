@@ -13,7 +13,6 @@
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@tanstack/react-query": "^5.90.20",
     "alchemy-sdk": "^3.6.5",
-    "connectkit": "^1.9.1",
     "next": "16.1.6",
     "postprocessing": "^6.38.2",
     "react": "19.2.3",

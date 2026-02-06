@@ -83,14 +83,14 @@ export default function ForceGraph3D({ graphData, onNodeClick }: Props) {
         try {
             const scene = fg.scene();
             if (scene) {
-                scene.fog = new THREE.FogExp2(0x000000, 0.002); // Deep black fog
+                scene.fog = new THREE.FogExp2(0x000000, 0.001); // Reduced fog density for better visibility at distance
                 scene.background = new THREE.Color('#020617'); // Dark navy/black
             }
         } catch (e) {
             console.warn('Fog setup error:', e);
         }
 
-        // 3. BLOOM POST-PROCESSING
+        // 3. BLOOM POST-PROCESSING & ANIMATION LOOP
         if (!bloomInitialized.current) {
             bloomInitialized.current = true;
             Promise.all([
@@ -109,7 +109,7 @@ export default function ForceGraph3D({ graphData, onNodeClick }: Props) {
 
                         const bloomPass = new UnrealBloomPass(
                             new THREE.Vector2(window.innerWidth, window.innerHeight),
-                            0.7,   // strength (higher for beams)
+                            0.4,   // strength (Reduced from 0.7 for cleaner look)
                             0.4,   // radius
                             0.85   // threshold
                         );
@@ -118,6 +118,7 @@ export default function ForceGraph3D({ graphData, onNodeClick }: Props) {
                         const originalAnimate = fg._animationCycle;
                         fg._animationCycle = () => {
                             originalAnimate?.call(fg);
+                            // Pulse animation removed per user request for less clutter.
                             composer.render();
                         };
                     }
@@ -134,7 +135,7 @@ export default function ForceGraph3D({ graphData, onNodeClick }: Props) {
 
     const handleClick = useCallback((node: any) => {
         if (fgRef.current) {
-            const distance = 200;
+            const distance = 500; // Increased to 500 to keep context visible and prevent "missing nodes" illusion
             const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
             fgRef.current.cameraPosition(
                 { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio },
@@ -149,26 +150,10 @@ export default function ForceGraph3D({ graphData, onNodeClick }: Props) {
     const nodeThreeObject = useCallback((node: any) => {
         const group = new THREE.Group();
         const isMain = node.type === 'main';
-        const size = isMain ? 15 : (5 + Math.log(node.value || 1) * 0.5);
+        const size = isMain ? 12 : (6 + Math.log(node.value || 1) * 0.4); // Increased base size from 4 to 6 for better visibility
 
-        // 1. HALO RING (Pulsing effect handled in frame loop if needed, static transparency here)
-        if (isMain) {
-            const ringGeo = new THREE.RingGeometry(size * 1.2, size * 1.6, 32);
-            const ringMat = new THREE.MeshBasicMaterial({
-                color: '#3b82f6',
-                transparent: true,
-                opacity: 0.3,
-                side: THREE.DoubleSide
-            });
-            const ring = new THREE.Mesh(ringGeo, ringMat);
-            group.add(ring);
-
-            // Second dimmer ring
-            const ring2Geo = new THREE.RingGeometry(size * 1.8, size * 2.0, 32);
-            const ring2Mat = new THREE.MeshBasicMaterial({ color: '#3b82f6', transparent: true, opacity: 0.1, side: THREE.DoubleSide });
-            const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
-            group.add(ring2);
-        }
+        // 1. HALO RING REMOVED (Per user feedback: "too cluttered")
+        // We rely on size and bloom for emphasis now.
 
         // 2. AVATAR / ICON RENDERING
         const protocolLogo = PROTOCOL_LOGOS[node.id.toLowerCase()];
@@ -179,55 +164,69 @@ export default function ForceGraph3D({ graphData, onNodeClick }: Props) {
         canvas.width = 128; canvas.height = 128;
         const ctx = canvas.getContext('2d')!;
 
-        // Base Circle
-        ctx.beginPath();
-        ctx.arc(64, 64, 50, 0, 2 * Math.PI);
-        ctx.fillStyle = isMain ? '#1e293b' : '#334155';
-        ctx.fill();
-        ctx.strokeStyle = isMain ? '#60a5fa' : size > 10 ? '#fbbf24' : '#475569';
-        ctx.lineWidth = 4;
-        ctx.stroke();
+        // Draw helper
+        const drawNode = (image?: HTMLImageElement) => {
+            ctx.clearRect(0, 0, 128, 128);
 
-        // Label (4 chars)
-        if (!imgUrl) {
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = 'bold 24px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(node.id.slice(-4).toUpperCase(), 64, 64);
-        }
+            // Background
+            ctx.beginPath();
+            ctx.arc(64, 64, 60, 0, 2 * Math.PI); // Radius 60 (fit 128 width)
+            ctx.fillStyle = isMain ? '#1e293b' : '#334155';
+            ctx.fill();
+
+            // Image (Clipped to Circle)
+            if (image) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(64, 64, 60, 0, 2 * Math.PI);
+                ctx.clip();
+                ctx.drawImage(image, 4, 4, 120, 120);
+                ctx.restore();
+            }
+
+            // Border
+            ctx.beginPath();
+            ctx.arc(64, 64, 60, 0, 2 * Math.PI);
+            ctx.strokeStyle = isMain ? '#60a5fa' : size > 10 ? '#fbbf24' : '#475569';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // Text Label (only if no image)
+            if (!image) {
+                ctx.fillStyle = '#e2e8f0';
+                ctx.font = 'bold 24px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.id.slice(-4).toUpperCase(), 64, 64);
+            }
+        };
+
+        // Initial draw (no image yet)
+        drawNode();
 
         const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+
         const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
         const sprite = new THREE.Sprite(material);
         sprite.scale.set(size * 2, size * 2, 1);
         group.add(sprite);
 
-        // Overlay Image if available
+        // Load Image dynamically and update texture
         if (imgUrl) {
-            if (textureCache.current[imgUrl]) {
-                const imgSprite = createSpriteFromTexture(textureCache.current[imgUrl], size);
-                group.add(imgSprite);
-            } else {
-                textureLoader.load(imgUrl, (tex) => {
-                    tex.colorSpace = THREE.SRGBColorSpace;
-                    textureCache.current[imgUrl] = tex;
-                    const imgSprite = createSpriteFromTexture(tex, size);
-                    group.add(imgSprite);
-                });
-            }
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.src = imgUrl;
+            img.onload = () => {
+                drawNode(img);
+                texture.needsUpdate = true;
+            };
         }
 
         return group;
     }, [textureLoader]);
 
-    const createSpriteFromTexture = (tex: THREE.Texture, size: number) => {
-        const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
-        const sprite = new THREE.Sprite(mat);
-        sprite.scale.set(size * 1.4, size * 1.4, 1);
-        sprite.position.z = 0.5; // Slightly in front base
-        return sprite;
-    };
+    // Helper removed (integrated into nodeThreeObject for sorting/clipping)
 
     // ⚡️ CUSTOM BEAM EDGES (Optimized Cylinder)
     // Using Cylinder instead of dynamic TubeGeometry for performance and stability
@@ -241,15 +240,15 @@ export default function ForceGraph3D({ graphData, onNodeClick }: Props) {
         const material = new THREE.MeshBasicMaterial({
             color,
             transparent: true,
-            opacity: 0.6
+            opacity: 0.25 // Significantly reduced from 0.6 for cleaner look
         });
 
-        // Radius based on value
+        // Radius based on value - Much thinner beams
         const val = link?.value || 1;
-        const radius = Math.max(0.2, Math.min(3.0, Math.log10(val + 1) * 0.5));
+        const radius = Math.max(0.1, Math.min(1.2, Math.log10(val + 1) * 0.3));
 
         // Cylinder aligned to Z-axis (length 1)
-        const geometry = new THREE.CylinderGeometry(radius, radius, 1, 8, 1, true);
+        const geometry = new THREE.CylinderGeometry(radius, radius, 1, 6, 1, true);
         geometry.rotateX(Math.PI / 2); // Align Y -> Z
 
         return new THREE.Mesh(geometry, material);

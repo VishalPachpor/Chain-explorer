@@ -48,9 +48,7 @@ export function GraphCanvas() {
         );
     }
 
-    return isMobile ? (
-        <ForceGraph2DComponent graphData={graph} onNodeClick={handleNodeClick} />
-    ) : (
+    return (
         <ForceGraph3DComponent graphData={graph} onNodeClick={handleNodeClick} />
     );
 }

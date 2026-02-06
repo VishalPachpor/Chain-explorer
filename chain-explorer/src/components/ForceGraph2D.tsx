@@ -57,12 +57,19 @@ export default function ForceGraph2D({ graphData, onNodeClick }: Props) {
         });
     }, [graphData.nodes, images]);
 
-    // Add collision force
+    // Customize force engine
     useEffect(() => {
         if (fgRef.current) {
+            // Stronger repulsion to separate nodes
+            fgRef.current.d3Force('charge').strength(-300).distanceMax(400);
+
+            // Adjust link distance
+            fgRef.current.d3Force('link').distance(70);
+
+            // Prevent overlap
             fgRef.current.d3Force('collision',
                 // @ts-ignore
-                window.d3?.forceCollide ? window.d3.forceCollide(12) : null
+                window.d3?.forceCollide ? window.d3.forceCollide(20) : null
             );
         }
     }, [graphData]);

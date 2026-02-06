@@ -113,7 +113,9 @@ export function NodeDetails() {
     // Mobile: Bottom sheet
     if (isMobile) {
         return (
-            <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 rounded-t-2xl p-4 z-20 max-h-[50vh] overflow-y-auto">
+            <div className="fixed bottom-0 left-0 right-0 bg-[#0F0F13] border-t border-gray-800/50 rounded-t-[32px] p-6 z-30 max-h-[85vh] overflow-y-auto shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.8)] pb-8">
+                {/* Drag Handle */}
+                <div className="w-12 h-1.5 bg-gray-800 rounded-full mx-auto mb-6 opacity-50" />
                 {content}
             </div>
         );

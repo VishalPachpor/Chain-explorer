@@ -4,7 +4,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 export function WalletButton() {
     return (
-        <div className="absolute top-4 right-4 z-20">
+        <div className="z-20">
             <ConnectButton
                 accountStatus="avatar"
                 chainStatus="icon"

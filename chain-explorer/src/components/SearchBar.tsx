@@ -41,31 +41,30 @@ export function SearchBar() {
     };
 
     return (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-full max-w-md px-4">
-            <div className="flex gap-2">
+        <div className="w-full max-w-md transition-all">
+            <div className="relative group">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
                 <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Enter wallet address or ENS..."
-                    className="flex-1 px-4 py-3 rounded-xl bg-gray-900/90 backdrop-blur-sm border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="Search address or ENS..."
+                    className="w-full pl-12 pr-4 py-3.5 rounded-full bg-gray-900/60 backdrop-blur-xl border border-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-gray-900/80 transition-all shadow-lg text-sm sm:text-base font-medium"
                     disabled={loading}
                 />
-                <button
-                    onClick={handleSearch}
-                    disabled={loading || !query.trim()}
-                    className="px-6 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                    {loading ? (
-                        <span className="inline-block animate-spin">⟳</span>
-                    ) : (
-                        'Explore'
-                    )}
-                </button>
+                {loading && (
+                    <div className="absolute inset-y-0 right-4 flex items-center">
+                        <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                    </div>
+                )}
             </div>
             {error && (
-                <p className="mt-2 text-red-400 text-sm text-center">{error}</p>
+                <p className="mt-2 text-red-400 text-xs text-center font-medium bg-red-900/20 py-1 px-3 rounded-full mx-auto w-fit border border-red-900/30">{error}</p>
             )}
         </div>
     );

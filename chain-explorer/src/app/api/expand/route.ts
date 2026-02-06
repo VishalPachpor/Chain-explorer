@@ -34,7 +34,8 @@ export async function GET(req: NextRequest) {
     try {
         const currentBlock = await alchemy.core.getBlockNumber();
         const blocksPerDay = 24 * 60 * 5;
-        const fromBlock = Math.max(0, currentBlock - 90 * blocksPerDay);
+        // Increase lookback to ~180 days (6 months) to catch more history for less active wallets
+        const fromBlock = Math.max(0, currentBlock - 180 * blocksPerDay);
 
         const [inbound, outbound] = await Promise.all([
             alchemy.core.getAssetTransfers({

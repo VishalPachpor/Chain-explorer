@@ -24,7 +24,7 @@ export function SearchBar() {
                 setError(data.error);
             } else if (data.address) {
                 initGraph(data.address);
-                await expandNode(data.address, chainId); // Pass chainId to API
+                await expandNode(data.address, chainId ?? 1); // Fallback to Ethereum Mainnet
                 setQuery('');
             }
         } catch (err) {

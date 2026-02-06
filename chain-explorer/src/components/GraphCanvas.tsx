@@ -31,7 +31,7 @@ export function GraphCanvas() {
 
     const handleNodeClick = (node: GraphNode) => {
         selectNode(node);
-        expandNode(node.id, chainId); // Pass chainId to API
+        expandNode(node.id, chainId ?? 1); // Fallback to Ethereum Mainnet
     };
 
     if (graph.nodes.length === 0) {

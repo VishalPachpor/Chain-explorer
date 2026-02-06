@@ -117,7 +117,20 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🔎 How to Use
+## � Deployment (Vercel)
+
+When deploying to Vercel, you **MUST** add the environment variables in the project settings, otherwise the API will fail to fetch data.
+
+1. Go to your Vercel Project Dashboard.
+2. Navigate to **Settings** > **Environment Variables**.
+3. Add the following keys:
+   - `NEXT_PUBLIC_ALCHEMY_API_KEY`
+   - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`
+4. **Redeploy** your application for changes to take effect.
+
+---
+
+## �🔎 How to Use
 1. **Connect Wallet**: Toggle networks (Eth/Base/Arb) using the top-right button.
 2. **Search**: Enter an address (e.g., `vitalik.eth`).
 3. **Explore**:

@@ -29,6 +29,9 @@ export function GraphCanvas() {
     const { graph, expandNode, selectNode } = useGraphStore();
     const chainId = useChainId(); // Get connected wallet's chainId
 
+    console.log('[GraphCanvas] Rendering with nodes:', graph.nodes.length, 'links:', graph.links.length);
+
+
     const handleNodeClick = (node: GraphNode) => {
         selectNode(node);
         expandNode(node.id, chainId ?? 1); // Fallback to Ethereum Mainnet

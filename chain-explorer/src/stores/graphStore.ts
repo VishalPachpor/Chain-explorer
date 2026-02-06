@@ -59,10 +59,14 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
 
         try {
             const res = await fetch(`/api/expand?address=${normalizedAddress}&chainId=${chainId}`);
-            const newData = await res.json();
+            const data = await res.json();
+            console.log('[graphStore] expandNode response:', data);
 
-            if (!res.ok || !newData.nodes || !newData.links) {
-                console.error('Expansion failed:', newData.error || 'Invalid data');
+            // The original condition was `!res.ok || !newData.nodes || !newData.links`
+            // The instruction provided `if (data.nodes && data.links)` which is the opposite.
+            // To maintain the original logic and incorporate the log, we'll use `data` for the check.
+            if (!res.ok || !data.nodes || !data.links) {
+                console.error('Expansion failed:', data.error || 'Invalid data');
                 set((state) => ({
                     graph: {
                         ...state.graph,
@@ -81,7 +85,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
             const nodeMap = new Map<string, GraphNode>(
                 graph.nodes.map((n) => [n.id, n])
             );
-            (newData as GraphData).nodes.forEach((n) => {
+            (data as GraphData).nodes.forEach((n) => {
                 if (!nodeMap.has(n.id)) {
                     nodeMap.set(n.id, n);
                 }
@@ -90,7 +94,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
             const linkMap = new Map<string, GraphLink>(
                 graph.links.map((l) => [l.id, l])
             );
-            (newData as GraphData).links.forEach((l) => {
+            (data as GraphData).links.forEach((l) => {
                 const key = [l.source, l.target].sort().join('-');
                 const existing = linkMap.get(key);
                 if (existing) {
